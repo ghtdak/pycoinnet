@@ -6,7 +6,6 @@ import struct
 import time
 
 from pycoin import encoding
-from pycoin.serialize import bitcoin_streamer
 
 from pycoinnet.message import parse_from_data, pack_from_data
 from pycoinnet.message import MESSAGE_STRUCTURES
@@ -102,8 +101,10 @@ class BitcoinPeerProtocol(asyncio.Protocol):
         message_type_padded = (message_type + (b'\0' * 12))[:12]
         message_size = struct.pack("<L", len(message_data))
         message_checksum = encoding.double_sha256(message_data)[:4]
-        packet = b"".join([self.magic_header, message_type_padded, message_size,
-                           message_checksum, message_data])
+        packet = b"".join([
+            self.magic_header, message_type_padded, message_size,
+            message_checksum, message_data
+        ])
         logging.debug("sending message %s [%d bytes]",
                       message_type.decode("utf8"), len(packet))
         self.bytes_writ += len(packet)

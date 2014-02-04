@@ -5,15 +5,17 @@ class BHO(object):
 
     def __init__(self, h, previous_block_hash=None, difficulty=10):
         self.h = h
-        self.previous_block_hash = h - 1 if previous_block_hash is None else previous_block_hash
+        if previous_block_hash is None:
+            previous_block_hash = h - 1
+        self.previous_block_hash = previous_block_hash
         self.difficulty = difficulty
 
     def hash(self):
         return self.h
 
     def __repr__(self):
-        return "<BHO: id:%s parent:%s difficulty:%s>" % (
-            self.h, self.previous_block_hash, self.difficulty)
+        return "<BHO: id:%s parent:%s difficulty:%s>" % \
+            (self.h, self.previous_block_hash, self.difficulty)
 
 
 def do_scramble(items, tfb, dbt):
@@ -92,13 +94,17 @@ def test_branch():
     assert cf.descendents_by_top == {301: {304}}
 
     load_items(cf, ITEMS)
-    assert cf.trees_from_bottom == {6: [6, 5, 4, 3, 2, 1, 0, -1],
-                                    304: [304, 303, 302, 301]}
+    assert cf.trees_from_bottom == {
+        6: [6, 5, 4, 3, 2, 1, 0, -1],
+        304: [304, 303, 302, 301]
+    }
     assert cf.descendents_by_top == {-1: {6}, 301: {304}}
 
     load_items(cf, [B301])
-    assert cf.trees_from_bottom == {6: [6, 5, 4, 3, 2, 1, 0, -1],
-                                    304: [304, 303, 302, 301, 3, 2, 1, 0, -1]}
+    assert cf.trees_from_bottom == {
+        6: [6, 5, 4, 3, 2, 1, 0, -1],
+        304: [304, 303, 302, 301, 3, 2, 1, 0, -1]
+    }
     assert cf.descendents_by_top == {-1: {6, 304}}
 
 
@@ -114,7 +120,6 @@ def test_0123():
 
 
 def test_all_orphans():
-    I0 = BHO(0)
     I1 = BHO(1)
     I2 = BHO(2)
     I3 = BHO(3)
@@ -126,10 +131,12 @@ def test_all_orphans():
 
 def test_scramble():
     ITEMS = [BHO(i, (i - 1) // 2, 10) for i in range(7)]
-    tfb = {3: [3, 1, 0, -1],
-           4: [4, 1, 0, -1],
-           5: [5, 2, 0, -1],
-           6: [6, 2, 0, -1]}
+    tfb = {
+        3: [3, 1, 0, -1],
+        4: [4, 1, 0, -1],
+        5: [5, 2, 0, -1],
+        6: [6, 2, 0, -1]
+    }
     dbt = {-1: {3, 4, 5, 6}}
     do_scramble(ITEMS, tfb, dbt)
 

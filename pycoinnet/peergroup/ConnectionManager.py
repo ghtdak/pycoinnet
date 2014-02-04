@@ -3,12 +3,7 @@ Keep track of all connected peers.
 """
 
 import asyncio.queues
-import binascii
 import logging
-
-from pycoin.serialize import b2h_rev
-
-from pycoinnet.util.Queue import Queue
 
 logging = logging.getLogger("ConnectionManager")
 
