@@ -140,7 +140,9 @@ def pack_from_data(message_name, **kwargs):
             bitcoin_streamer.BITCOIN_STREAMER.stream_struct("I", f,
                                                             len(kwargs[name]))
             for v in kwargs[name]:
-                bitcoin_streamer.BITCOIN_STREAMER.stream_struct(type[1:-1], f,
+                if not isinstance(v, (tuple, list)):
+                    v = [v]
+                bitcoin_streamer.BITCOIN_STREAMER.stream_struct(type[1:-1], f, *
                                                                 v)
         else:
             bitcoin_streamer.BITCOIN_STREAMER.stream_struct(type, f,

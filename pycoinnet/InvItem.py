@@ -1,6 +1,8 @@
 from pycoin.serialize import b2h_rev
 from pycoin.serialize.bitcoin_streamer import parse_struct, stream_struct
 
+ITEM_TYPE_TX, ITEM_TYPE_BLOCK = (1, 2)
+
 
 class InvItem(object):
 
