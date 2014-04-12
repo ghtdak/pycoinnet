@@ -2,7 +2,9 @@
 
 from setuptools import setup
 
-version = "0.10"
+version = "0.19"
+
+REQUIREMENTS = [i.strip() for i in open("requirements.txt").readlines()]
 
 setup(name="pycoinnet",
       version=version,
@@ -11,15 +13,14 @@ setup(name="pycoinnet",
           "pycoinnet.examples",
           "pycoinnet.helpers",
           "pycoinnet.peer",
-          "pycoinnet.peer.tests",
           "pycoinnet.peergroup",
-          "pycoinnet.peergroup.tests",
           "pycoinnet.util",
       ],
       entry_points={'console_scripts':
                     [
                         'blockwatcher = pycoinnet.examples.blockwatcher:main',
                     ]},
+      install_requires=REQUIREMENTS,
       author="Richard Kiss",
       author_email="him@richardkiss.com",
       url="https://github.com/richardkiss/pycoinnet",
