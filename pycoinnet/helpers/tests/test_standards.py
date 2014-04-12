@@ -119,8 +119,8 @@ def test_missing_pong_disconnect():
     ## make sure peer1 is disconnected
     got_eof = False
     try:
-        asyncio.get_event_loop().run_until_complete(asyncio.wait(next_message(),
-                                                                 timeout=0.2))
+        asyncio.get_event_loop().run_until_complete(asyncio.wait_for(
+            next_message(), timeout=0.2))
     except EOFError:
         got_eof = True
     assert got_eof

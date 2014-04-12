@@ -23,8 +23,6 @@ def _done_callback(f):
         logging.exception("task raised exception")
         print("exception!! =>", ex)
         traceback.print_tb(ex.__traceback__)
-        import pdb
-        pdb.set_trace()
         print(traceback.format_exc())
         #sys.excepthook(ex)
 
@@ -34,5 +32,4 @@ def Task(*args, **kwargs):
     f.add_done_callback(_done_callback)
     return f
 
-
-asyncio.Task = Task
+#asyncio.Task = Task
