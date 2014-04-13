@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """
 Custom bitcoin client
 """
@@ -48,8 +47,9 @@ def write_block_to_disk(blockdir, block, block_index):
         block.stream(f)
     os.rename(tmp_path, p)
 
-def update_last_processed_block(config_dir, last_processed_block):
-    last_processed_block_path = os.path.join(config_dir, "last_processed_block")
+
+def update_last_processed_block(state_dir, last_processed_block):
+    last_processed_block_path = os.path.join(state_dir, "last_processed_block")
     try:
         with open(last_processed_block_path, "w") as f:
             f.write("%d\n" % last_processed_block)
@@ -57,8 +57,9 @@ def update_last_processed_block(config_dir, last_processed_block):
     except Exception:
         logging.exception("problem writing %s", last_processed_block_path)
 
-def get_last_processed_block(config_dir):
-    last_processed_block_path = os.path.join(config_dir, "last_processed_block")
+
+def get_last_processed_block(state_dir):
+    last_processed_block_path = os.path.join(state_dir, "last_processed_block")
     try:
         with open(last_processed_block_path) as f:
             last_processed_block = int(f.readline()[:-1])
@@ -67,15 +68,18 @@ def get_last_processed_block(config_dir):
         last_processed_block = 0
     return last_processed_block
 
-def block_processor(change_q, blockfetcher, config_dir, blockdir, depth):
-    last_processed_block = get_last_processed_block(config_dir)
+
+def block_processor(change_q, blockfetcher, state_dir, blockdir, depth):
+    last_processed_block = get_last_processed_block(state_dir)
     block_q = asyncio.Queue()
     while True:
         add_remove, block_hash, block_index = yield from change_q.get()
         if add_remove == "remove":
             the_other = block_q.pop()
             if the_other[1:] != (block_hash, block_index):
-                logging.fatal("problem merging! did the block chain fork? %s %s", the_other, block_hash)
+                logging.fatal(
+                    "problem merging! did the block chain fork? %s %s",
+                    the_other, block_hash)
                 import sys
                 sys.exit(-1)
             continue
@@ -84,7 +88,8 @@ def block_processor(change_q, blockfetcher, config_dir, blockdir, depth):
             continue
         if block_index < last_processed_block:
             continue
-        item = (blockfetcher.get_block_future(block_hash, block_index), block_hash, block_index)
+        item = (blockfetcher.get_block_future(block_hash, block_index),
+                block_hash, block_index)
         block_q.put_nowait(item)
         if change_q.qsize() > 0:
             continue
@@ -93,10 +98,12 @@ def block_processor(change_q, blockfetcher, config_dir, blockdir, depth):
             future, block_hash, block_index = yield from block_q.get()
             block = yield from asyncio.wait_for(future, timeout=None)
             write_block_to_disk(blockdir, block, block_index)
-            update_last_processed_block(config_dir, block_index)
+            update_last_processed_block(state_dir, block_index)
+
 
 @asyncio.coroutine
-def run_peer(peer, fetcher, fast_forward_add_peer, blockfetcher, inv_collector, blockhandler):
+def run_peer(peer, fetcher, fast_forward_add_peer, blockfetcher, inv_collector,
+             blockhandler):
     yield from asyncio.wait_for(peer.connection_made_future, timeout=None)
     version_parameters = version_data_for_peer(peer)
     version_data = yield from initial_handshake(peer, version_parameters)
@@ -106,7 +113,9 @@ def run_peer(peer, fetcher, fast_forward_add_peer, blockfetcher, inv_collector, 
     inv_collector.add_peer(peer)
     blockhandler.add_peer(peer)
 
+
 def block_chain_locker(block_chain):
+
     @asyncio.coroutine
     def _run(block_chain, change_q):
         LOCKED_MULTIPLE = 32
@@ -115,12 +124,14 @@ def block_chain_locker(block_chain):
             locked_length = block_chain.locked_length()
             unlocked_length = total_length - locked_length
             if unlocked_length > LOCKED_MULTIPLE:
-                new_locked_length = total_length - (total_length % LOCKED_MULTIPLE) - LOCKED_MULTIPLE
+                new_locked_length = total_length - (
+                    total_length % LOCKED_MULTIPLE) - LOCKED_MULTIPLE
                 block_chain.lock_to_index(new_locked_length)
             # wait for a change to blockchain
             op, block_header, block_index = yield from change_q.get()
 
     return asyncio.Task(_run(block_chain, block_chain.new_change_q()))
+
 
 @asyncio.coroutine
 def new_block_fetcher(inv_collector, block_chain):
@@ -132,8 +143,10 @@ def new_block_fetcher(inv_collector, block_chain):
                 block = yield from inv_collector.fetch(inv_item)
                 block_chain.add_headers([block])
 
-LOG_FORMAT=('%(asctime)s [%(process)d] [%(levelname)s] '
-            '%(filename)s:%(lineno)d %(message)s')
+
+LOG_FORMAT = ('%(asctime)s [%(process)d] [%(levelname)s] '
+              '%(filename)s:%(lineno)d %(message)s')
+
 
 def log_file(logPath, level=logging.NOTSET):
     new_log = logging.FileHandler(logPath)
@@ -141,19 +154,31 @@ def log_file(logPath, level=logging.NOTSET):
     new_log.setFormatter(logging.Formatter(LOG_FORMAT))
     logging.getLogger().addHandler(new_log)
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Watch Bitcoin network for new blocks.")
-    parser.add_argument('-c', "--config-dir", help='The directory where config files are stored.')
+    parser = argparse.ArgumentParser(
+        description="Watch Bitcoin network for new blocks.")
+    parser.add_argument('-s',
+                        "--state-dir",
+                        help='The directory where state files are stored.')
     parser.add_argument(
-        '-f', "--fast-forward", type=int,
-        help="block index to fast-forward to (ie. don't download full blocks prior to this one)", default=0
-    )
+        '-f',
+        "--fast-forward",
+        type=int,
+        help="block index to fast-forward to (ie. don't download full blocks prior to this one)",
+        default=0)
     parser.add_argument(
-        '-d', "--depth", type=int,
-        help="Minimum depth blocks must be buried before being dropped in blockdir", default=2
-    )
-    parser.add_argument( '-l', "--log-file", help="Path to log file", default=None)
-    parser.add_argument("blockdir", help='The directory where new blocks are dropped.')
+        '-d',
+        "--depth",
+        type=int,
+        help="Minimum depth blocks must be buried before being dropped in blockdir",
+        default=2)
+    parser.add_argument('-l',
+                        "--log-file",
+                        help="Path to log file",
+                        default=None)
+    parser.add_argument("blockdir",
+                        help='The directory where new blocks are dropped.')
 
     asyncio.tasks._DEBUG = True
     logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
@@ -170,8 +195,10 @@ def main():
     if args.log_file:
         log_file(args.log_file)
 
-    block_chain_store = BlockChainStore(args.config_dir)
-    block_chain = BlockChain(did_lock_to_index_f=block_chain_store.did_lock_to_index)
+    state_dir = args.state_dir
+    block_chain_store = BlockChainStore(state_dir)
+    block_chain = BlockChain(
+        did_lock_to_index_f=block_chain_store.did_lock_to_index)
 
     locker_task = block_chain_locker(block_chain)
     block_chain.add_nodes(block_chain_store.block_tuple_iterator())
@@ -186,21 +213,26 @@ def main():
         while True:
             block_store.rotate()
             yield from asyncio.sleep(1800)
+
     rotate_task = asyncio.Task(_rotate(block_store))
 
-    blockhandler = BlockHandler(inv_collector, block_chain, block_store,
+    blockhandler = BlockHandler(
+        inv_collector,
+        block_chain,
+        block_store,
         should_download_f=lambda block_hash, block_index: block_index >= args.fast_forward)
 
-    last_processed_block = max(get_last_processed_block(config_dir), args.fast_forward)
-    update_last_processed_block(config_dir, last_processed_block)
+    last_processed_block = max(
+        get_last_processed_block(state_dir), args.fast_forward)
+    update_last_processed_block(state_dir, last_processed_block)
 
     change_q = asyncio.Queue()
     from pycoinnet.util.BlockChain import _update_q
-    block_chain.add_change_callback(lambda blockchain, ops: _update_q(change_q, ops))
+    block_chain.add_change_callback(
+        lambda blockchain, ops: _update_q(change_q, ops))
 
-    block_processor_task = asyncio.Task(
-        block_processor(
-            change_q, blockfetcher, args.config_dir, args.blockdir, args.depth)))
+    block_processor_task = asyncio.Task(block_processor(
+        change_q, blockfetcher, state_dir, args.blockdir, args.depth))
 
     fast_forward_add_peer = fast_forwarder_add_peer_f(block_chain)
 
@@ -210,14 +242,15 @@ def main():
         peer = BitcoinPeerProtocol(MAINNET["MAGIC_HEADER"])
         install_pingpong_manager(peer)
         fetcher = Fetcher(peer)
-        peer.add_task(run_peer(
-            peer, fetcher, fast_forward_add_peer,
-            blockfetcher, inv_collector, blockhandler))
+        peer.add_task(run_peer(peer, fetcher, fast_forward_add_peer,
+                               blockfetcher, inv_collector, blockhandler))
         return peer
 
-    connection_info_q = manage_connection_count(host_port_q, create_protocol_callback, 8)
+    connection_info_q = manage_connection_count(host_port_q,
+                                                create_protocol_callback, 8)
     show_task = asyncio.Task(show_connection_info(connection_info_q))
     asyncio.get_event_loop().run_forever()
+
 
 if __name__ == '__main__':
     main()
