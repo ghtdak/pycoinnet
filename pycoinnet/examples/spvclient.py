@@ -51,6 +51,7 @@ class SPVClient(object):
                  initial_blockchain_view,
                  bloom_filter,
                  merkle_block_index_queue,
+                 filter_f=lambda idx, h: True,
                  host_port_q=None):
         """
         network:
@@ -78,6 +79,8 @@ class SPVClient(object):
 
         self.blockfetcher = Blockfetcher()
         self.inv_collector = InvCollector()
+
+        self.filter_f = filter_f
 
         self.getheaders_add_peer = getheaders_add_peer_f(self.blockchain_view,
                                                          self.handle_reorg)
@@ -126,10 +129,6 @@ class SPVClient(object):
         self.show_task = asyncio.Task(show_connection_info(
             self.connection_info_q))
 
-    def merkleblock_futures_for_headers(self, block_number, headers):
-        return [self.blockfetcher.get_merkle_block_future(h, idx)
-                for idx, h in enumerate(headers)]
-
     @asyncio.coroutine
     def feed_merkle_blocks(self, merkle_block_index_queue):
         while 1:
@@ -140,9 +139,14 @@ class SPVClient(object):
     @asyncio.coroutine
     def handle_reorg(self, block_number, headers):
         for idx, h in enumerate(headers):
-            yield from self.merkle_block_futures.put(
-                [block_number + idx, self.blockfetcher.get_merkle_block_future(
-                    h.hash(), block_number + idx)])
+            if self.filter_f(idx, h):
+                f = self.blockfetcher.get_merkle_block_future(
+                    h.hash(), block_number + idx)
+            else:
+                h.txs = []
+                f = asyncio.Future()
+                f.set_result(h)
+            yield from self.merkle_block_futures.put([block_number + idx, f])
 
 
 def main():
