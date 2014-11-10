@@ -206,7 +206,7 @@ def test_simple_getheader():
     def run_peer2():
         r = []
         headers = yield from standards.get_headers_hashes(
-            peer2, after_block_hash=b'\0' * 32)
+            peer2, until_block_hash=b'\0' * 32)
         r.append(headers)
         return r
 
