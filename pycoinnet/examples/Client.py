@@ -160,13 +160,12 @@ class Client(object):
         @asyncio.coroutine
         def run_listener():
             abstract_server = None
-            future_peer = asyncio.Future()
             try:
                 abstract_server = yield from asyncio.get_event_loop(
                 ).create_server(protocol_factory=create_protocol_callback,
                                 port=server_port)
                 return abstract_server
-            except OSError as ex:
+            except OSError:
                 logging.info("can't listen on port %d", server_port)
 
         if server_port:

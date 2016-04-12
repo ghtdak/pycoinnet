@@ -5,7 +5,6 @@ break on exceptions.
 
 import asyncio
 import logging
-import sys
 import traceback
 
 asyncio_Task = asyncio.Task
@@ -18,13 +17,14 @@ def _done_callback(f):
         ex = f.exception()
         if ex:
             raise ex
-        r = f.result()
+        f.result()
     except Exception as ex:
         logging.exception("task raised exception")
         print("exception!! =>", ex)
         traceback.print_tb(ex.__traceback__)
         print(traceback.format_exc())
-        #sys.excepthook(ex)
+        # import sys
+        # sys.excepthook(ex)
 
 
 def Task(*args, **kwargs):
@@ -32,4 +32,4 @@ def Task(*args, **kwargs):
     f.add_done_callback(_done_callback)
     return f
 
-#asyncio.Task = Task
+# asyncio.Task = Task

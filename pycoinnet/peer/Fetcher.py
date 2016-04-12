@@ -40,7 +40,7 @@ class Fetcher:
 
     def queue_size(self):
         pass
-        ## TODO: finish
+        # ## TODO: finish
 
     @asyncio.coroutine
     def _getdata_loop(self):
@@ -68,6 +68,7 @@ class Fetcher:
                                "merkleblock": ITEM_TYPE_MERKLEBLOCK}
                     the_type = TYPE_DB[name]
                     inv_item = InvItem(the_type, the_hash)
+                    future = self.futures.get(inv_item)
                     if name == "merkleblock":
                         txs = []
                         for h in data["tx_hashes"]:
@@ -89,8 +90,7 @@ class Fetcher:
                                 break
                             txs.append(tx)
                         item.txs = txs
-                    future = self.futures.get(inv_item)
-                    if future:
+                    if future is not None:
                         del self.futures[inv_item]
                         if not future.done():
                             future.set_result(item)

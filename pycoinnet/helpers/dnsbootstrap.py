@@ -5,11 +5,9 @@ disconnects after enough records are obtained, and that's that.
 
 import asyncio
 import logging
-import time
 
 from asyncio.queues import PriorityQueue
 
-from pycoinnet.PeerAddress import PeerAddress
 from pycoinnet.helpers.standards import initial_handshake
 from pycoinnet.helpers.standards import get_date_address_tuples
 from pycoinnet.helpers.standards import version_data_for_peer

@@ -61,7 +61,7 @@ class BlockChainStore:
                 "r+b") as f:
             f.seek(start_index * 32)
             count = 0
-            ## TODO: make sure the one we're writing is in the right place
+            # ## TODO: make sure the one we're writing is in the right place
             for header in block_tuple_list:
                 the_hash = header.hash()
                 f.write(the_hash)

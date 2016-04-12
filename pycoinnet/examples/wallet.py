@@ -8,7 +8,6 @@ import datetime
 import io
 import os.path
 import sqlite3
-import sys
 import time
 
 from pycoin.convention import satoshi_to_mbtc
@@ -94,7 +93,11 @@ def wallet_fetch(path, args):
         # use a local host instead of going to DNS
         host_port_q = asyncio.Queue()
         host_port_q.put_nowait(("127.0.0.1", 8333))
-    filter_f = lambda idx, h: h.timestamp >= early_timestamp
+
+    def filter_f(idx, h):
+        return h.timestamp >= early_timestamp
+
+    # this spv value probably needs to be kept on the stack so the SPVClient is not GCed
     spv = SPVClient(network,
                     blockchain_view,
                     bloom_filter,
@@ -119,6 +122,7 @@ def wallet_fetch(path, args):
             if merkle_block_index_queue.empty():
                 persistence.commit()
 
+    # we need to keep the task around in the stack context or it will be GCed
     t = asyncio.Task(process_updates(merkle_block_index_queue))
     asyncio.get_event_loop().run_forever()
 
@@ -218,8 +222,7 @@ def main():
                               help="Rewind to this block index.",
                               type=int)
 
-    balance_parser = subparsers.add_parser('balance',
-                                           help='Show wallet balance')
+    subparsers.add_parser('balance', help='Show wallet balance')
 
     create_parser = subparsers.add_parser('create', help='Create transaction')
     create_parser.add_argument("-o",
