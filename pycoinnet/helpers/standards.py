@@ -74,7 +74,7 @@ def version_data_for_peer(peer,
                           subversion=b"/Notoshi/",
                           timestamp=None,
                           want_relay=True):
-    remote_ip, remote_port = peer.peername
+    remote_ip, remote_port = peer.peername[:2]
     remote_addr = PeerAddress(1, remote_ip, remote_port)
     local_addr = PeerAddress(1, local_ip, local_port)
     nonce = nonce or int.from_bytes(os.urandom(8), byteorder="big")
