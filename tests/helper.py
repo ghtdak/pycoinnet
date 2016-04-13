@@ -46,7 +46,7 @@ def make_block(index):
     block = Block(version=1,
                   previous_block_hash=b'\0' * 32,
                   merkle_root=b'\0' * 32,
-                  timestamp=GENESIS_TIME + i,
+                  timestamp=GENESIS_TIME + index,
                   difficulty=s,
                   nonce=s,
                   txs=txs)
