@@ -47,8 +47,7 @@ MESSAGE_STRUCTURES = {
     'filteradd': "data:[1]",
     'filterclear': "",
     'merkleblock': "header:z total_transactions:L hashes:[#] flags:[1]",
-    'alert': "payload:S signature:S",
-}
+    'alert': "payload:S signature:S"}
 
 
 def _make_parser(the_struct=''):
@@ -66,41 +65,43 @@ def _message_parsers():
     return dict((k, _make_parser(v)) for k, v in MESSAGE_STRUCTURES.items())
 
 
-def fixup_merkleblock(d, f):
+def recurse(level_widths, level_index, node_index, hashes, flags,
+            flag_index, tx_acc):
 
-    def recurse(level_widths, level_index, node_index, hashes, flags,
-                flag_index, tx_acc):
-        idx, r = divmod(flag_index, 8)
-        mask = (1 << r)
-        flag_index += 1
-        if flags[idx] & mask == 0:
-            h = hashes.pop()
-            return h, flag_index
+    idx, r = divmod(flag_index, 8)
+    mask = (1 << r)
+    flag_index += 1
+    if flags[idx] & mask == 0:
+        h = hashes.pop()
+        return h, flag_index
 
-        if level_index == len(level_widths) - 1:
-            h = hashes.pop()
-            tx_acc.append(h)
-            return h, flag_index
+    if level_index == len(level_widths) - 1:
+        h = hashes.pop()
+        tx_acc.append(h)
+        return h, flag_index
 
-        # traverse the left
-        left_hash, flag_index = recurse(level_widths, level_index + 1,
-                                        node_index * 2, hashes, flags,
-                                        flag_index, tx_acc)
+    # traverse the left
+    left_hash, flag_index = recurse(level_widths, level_index + 1,
+                                    node_index * 2, hashes, flags,
+                                    flag_index, tx_acc)
 
-        # is there a right?
-        if node_index * 2 + 1 < level_widths[level_index + 1]:
-            right_hash, flag_index = recurse(level_widths, level_index + 1,
-                                             node_index * 2 + 1, hashes, flags,
-                                             flag_index, tx_acc)
+    # is there a right?
+    if node_index * 2 + 1 < level_widths[level_index + 1]:
+        right_hash, flag_index = recurse(level_widths, level_index + 1,
+                                         node_index * 2 + 1, hashes, flags,
+                                         flag_index, tx_acc)
 
-            if left_hash == right_hash:
-                raise ValueError(
-                    "merkle hash has same left and right value at node %d" %
-                    node_index)
-        else:
-            right_hash = left_hash
+        if left_hash == right_hash:
+            raise ValueError(
+                "merkle hash has same left and right value at node %d" %
+                node_index)
+    else:
+        right_hash = left_hash
 
-        return double_sha256(left_hash + right_hash), flag_index
+    return double_sha256(left_hash + right_hash), flag_index
+
+
+def fixup_merkleblock(d, _):
 
     level_widths = []
     count = d["total_transactions"]
@@ -114,8 +115,8 @@ def fixup_merkleblock(d, f):
     tx_acc = []
     flags = d["flags"]
     hashes = list(reversed(d["hashes"]))
-    left_hash, flag_index = recurse(level_widths, 0, 0, hashes, flags, 0,
-                                    tx_acc)
+    left_hash, flag_index = recurse(
+        level_widths, 0, 0, hashes, flags, 0, tx_acc)
 
     if len(hashes) > 0:
         raise ValueError("extra hashes: %s" % hashes)
@@ -145,10 +146,11 @@ def _message_fixups():
         return d
 
     alert_submessage_parser = _make_parser(
-        "version:L relayUntil:Q expiration:Q id:L cancel:L setCancel:[L] minVer:L "
-        "maxVer:L setSubVer:[S] priority:L comment:S statusBar:S reserved:S")
+        "version:L relayUntil:Q expiration:Q id:L cancel:L setCancel:[L] minVe"
+        "r:L maxVer:L setSubVer:[S] priority:L comment:S statusBar:S reserved:"
+        "S")
 
-    def fixup_alert(d, f):
+    def fixup_alert(d, _):
         d1 = alert_submessage_parser(io.BytesIO(d["payload"]))
         d["alert_info"] = d1
         return d
@@ -170,8 +172,7 @@ def _make_parse_from_data():
             ("z",
              (BlockHeader.parse, lambda f, blockheader: blockheader.stream(f))),
             ("1", (lambda f: struct.unpack("B", f.read(1))[0],
-                   lambda f, b: f.write(struct.pack("B", b)))),
-        ]
+                   lambda f, b: f.write(struct.pack("B", b))))]
         bitcoin_streamer.BITCOIN_STREAMER.register_functions(more_parsing)
 
     init_bitcoin_streamer()
@@ -179,7 +180,7 @@ def _make_parse_from_data():
     MESSAGE_PARSERS = _message_parsers()
     MESSAGE_FIXUPS = _message_fixups()
 
-    def parse_from_data(message_name, data):
+    def parse_from_data2(message_name, data):
         message_stream = io.BytesIO(data)
         parser = MESSAGE_PARSERS.get(message_name)
         if parser:
@@ -193,7 +194,7 @@ def _make_parse_from_data():
             d = {}
         return d
 
-    return parse_from_data
+    return parse_from_data2
 
 
 parse_from_data = _make_parse_from_data()
@@ -208,14 +209,14 @@ def pack_from_data(message_name, **kwargs):
     pairs = [t.split(":") for t in the_fields]
     for name, _type in pairs:
         if _type[0] == '[':
-            bitcoin_streamer.BITCOIN_STREAMER.stream_struct("I", f,
-                                                            len(kwargs[name]))
+            bitcoin_streamer.BITCOIN_STREAMER.stream_struct(
+                "I", f, len(kwargs[name]))
             for v in kwargs[name]:
                 if not isinstance(v, (tuple, list)):
                     v = [v]
-                bitcoin_streamer.BITCOIN_STREAMER.stream_struct(_type[1:-1], f, *
-                                                                v)
+                bitcoin_streamer.BITCOIN_STREAMER.stream_struct(
+                    _type[1:-1], f, *v)
         else:
-            bitcoin_streamer.BITCOIN_STREAMER.stream_struct(_type, f,
-                                                            kwargs[name])
+            bitcoin_streamer.BITCOIN_STREAMER.stream_struct(
+                _type, f, kwargs[name])
     return f.getvalue()

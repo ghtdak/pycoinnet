@@ -48,8 +48,7 @@ def wallet_fetch(path, args):
     network = MAINNET
 
     addresses = [
-        a[:-1] for a in open(os.path.join(path, "watch_addresses")).readlines()
-    ]
+        a[:-1] for a in open(os.path.join(path, "watch_addresses")).readlines()]
 
     keychain = Keychain(addresses)
 
