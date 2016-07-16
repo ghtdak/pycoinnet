@@ -16,7 +16,8 @@ class FakeHeader:
         return "%s (parent %s)" % (self.h, self.previous_block_hash)
 
     def __eq__(self, other):
-        return self.h == other.h and self.previous_block_hash == other.previous_block_hash
+        return (self.h == other.h and
+                self.previous_block_hash == other.previous_block_hash)
 
     def __hash__(self):
         return self.h.__hash__()
@@ -54,7 +55,7 @@ class BlockChainStore:
     def did_lock_to_index(self, block_tuple_list, start_index):
         with open(
                 os.path.join(self.dir_path, self.BLOCK_HASHES_PATH),
-                "a+b") as f:
+                "a+b"):
             pass
         with open(
                 os.path.join(self.dir_path, self.BLOCK_HASHES_PATH),

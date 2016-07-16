@@ -117,10 +117,10 @@ def install_ping_manager(peer,
                          missing_pong_disconnect_timeout=60):
 
     @asyncio.coroutine
-    def ping_task(next_message):
+    def ping_task(next_message2):
         while True:
             try:
-                yield from asyncio.wait_for(next_message(),
+                yield from asyncio.wait_for(next_message2(),
                                             timeout=heartbeat_rate)
                 continue
             except asyncio.TimeoutError:
@@ -133,7 +133,7 @@ def install_ping_manager(peer,
             while True:
                 try:
                     timeout = end_time - time.time()
-                    name, data = yield from asyncio.wait_for(next_message(),
+                    name, data = yield from asyncio.wait_for(next_message2(),
                                                              timeout=timeout)
                     if name == "pong" and data["nonce"] == nonce:
                         break
@@ -151,9 +151,9 @@ def install_ping_manager(peer,
 def install_pong_manager(peer):
 
     @asyncio.coroutine
-    def pong_task(next_message):
+    def pong_task(next_message2):
         while True:
-            name, data = yield from next_message()
+            name, data = yield from next_message2()
             assert name == 'ping'
             peer.send_msg("pong", nonce=data["nonce"])
 
@@ -170,7 +170,7 @@ def install_pingpong_manager(peer):
 @asyncio.coroutine
 def get_date_address_tuples(peer):
     next_message = peer.new_get_next_message_f(
-        lambda name, data: name == 'addr')
+        lambda name2, data2: name2 == 'addr')
     peer.send_msg("getaddr")
     name, data = yield from next_message()
     return data["date_address_tuples"]
@@ -184,7 +184,7 @@ def get_headers_hashes(peer, until_block_hash):
                   hashes=hashes,
                   hash_stop=until_block_hash)
     next_message = peer.new_get_next_message_f(
-        lambda name, data: name == 'headers')
+        lambda name2, data2: name2 == 'headers')
     name, data = yield from next_message()
     headers = [bh for bh, t in data["headers"]]
     return headers
@@ -197,7 +197,7 @@ def do_get_headers(peer, block_locator_hashes, hash_stop=b'\0' * 32):
                   hashes=block_locator_hashes,
                   hash_stop=hash_stop)
     next_message = peer.new_get_next_message_f(
-        lambda name, data: name == 'headers')
+        lambda name2, data2: name2 == 'headers')
     name, data = yield from next_message()
     headers = [bh for bh, t in data["headers"]]
     return headers

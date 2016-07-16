@@ -61,8 +61,8 @@ def test_fetcher():
 
         t = yield from next_message()
         r.append(t)
-        items = [InvItem(ITEM_TYPE_TX, TX_LIST[3].hash())]
-        items.append([InvItem(ITEM_TYPE_TX, TX_LIST[5].hash())])
+        items = [InvItem(ITEM_TYPE_TX, TX_LIST[3].hash()),
+                 [InvItem(ITEM_TYPE_TX, TX_LIST[5].hash())]]
         peer1.send_msg("notfound", items=items)
         peer1.send_msg("tx", tx=TX_LIST[4])
 
@@ -114,11 +114,11 @@ def test_fetcher():
     r = f2.result()
     assert len(r) == 6
     assert r[0].hash() == TX_LIST[0].hash()
-    assert r[1] == None
+    assert r[1] is None
     assert r[2].hash() == TX_LIST[2].hash()
-    assert r[3] == None
+    assert r[3] is None
     assert r[4].hash() == TX_LIST[4].hash()
-    assert r[5] == None
+    assert r[5] is None
 
 
 def test_fetcher_timeout():
@@ -156,4 +156,4 @@ def test_fetcher_timeout():
 
     r = f2.result()
     assert len(r) == 1
-    assert r[0] == None
+    assert r[0] is None

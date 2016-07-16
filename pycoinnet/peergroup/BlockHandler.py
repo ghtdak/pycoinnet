@@ -56,7 +56,8 @@ class BlockHandler:
         self.q = inv_collector.new_inv_item_queue()
         self._watch_invcollector_task = asyncio.Task(self._watch_invcollector(
             block_validator))
-        # asyncio.Task(self._watch_block_chain(block_chain.new_change_q(), should_download_f))
+        # asyncio.Task(self._watch_block_chain(block_chain.new_change_q(),
+        # should_download_f))
 
     @asyncio.coroutine
     def _watch_block_chain(self, change_q, should_download_f):

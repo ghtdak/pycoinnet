@@ -17,7 +17,8 @@ from pycoin.tx.tx_utils import create_tx
 from pycoin.wallet.SQLite3Persistence import SQLite3Persistence
 from pycoin.wallet.SQLite3Wallet import SQLite3Wallet
 
-from pycoinnet.bloom import BloomFilter, filter_size_required, hash_function_count_required
+from pycoinnet.bloom import (BloomFilter, filter_size_required,
+                             hash_function_count_required)
 from pycoinnet.examples.spvclient import SPVClient
 from pycoinnet.helpers.networks import MAINNET
 from pycoinnet.util.BlockChainView import BlockChainView
@@ -97,7 +98,8 @@ def wallet_fetch(path, args):
     def filter_f(idx, h):
         return h.timestamp >= early_timestamp
 
-    # this spv value probably needs to be kept on the stack so the SPVClient is not GCed
+    # this spv value probably needs to be kept on the stack so the SPVClient
+    # is not GCed
     spv = SPVClient(network,
                     blockchain_view,
                     bloom_filter,
@@ -147,7 +149,7 @@ def as_payable(payable):
     if not is_address_valid(address):
         raise argparse.ArgumentTypeError("%s is not a valid address" % address)
     if amount is not None:
-        return (address, int(amount))
+        return address, int(amount)
     return address
 
 

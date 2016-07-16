@@ -55,11 +55,11 @@ def fast_forwarder_add_peer_f(blockchain):
                 except asyncio.TimeoutError:
                     # this peer timed out. How useless
                     continue
-                # TODO: what if the stupid client sends us bogus headers?
-                # how will we ever figure this out?
-                # answer: go through headers and remove fake ones or ones that we've seen
-                # check hash, difficulty, difficulty against hash, and that they form
-                # a chain. This make it expensive to produce bogus headers
+                # TODO: what if the stupid client sends us bogus headers? how
+                #  will we ever figure this out? answer: go through headers
+                # and remove fake ones or ones that we've seen check hash,
+                # difficulty, difficulty against hash, and that they form a
+                # chain. This make it expensive to produce bogus headers
                 time_elapsed = time.time() - start_time
                 rate_dict["total_seconds"] += time_elapsed
                 rate_dict["records"] += len(headers)

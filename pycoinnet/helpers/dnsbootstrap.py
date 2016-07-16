@@ -14,20 +14,23 @@ from pycoinnet.helpers.standards import version_data_for_peer
 from pycoinnet.peer.BitcoinPeerProtocol import BitcoinPeerProtocol
 
 
-def dns_bootstrap_host_port_q(network_info,
-                              getaddrinfo=asyncio.get_event_loop().getaddrinfo):
+def dns_bootstrap_host_port_q(
+        network_info,
+        getaddrinfo=asyncio.get_event_loop().getaddrinfo):
     """
-    Accepts network_info type (from pycoinnet.helpers.networks) and returns an asyncio.queue.
+    Accepts network_info type (from pycoinnet.helpers.networks) and returns
+    an asyncio.queue.
 
-    You MUST call queue.task.close() on the return value when you're done with it.
+    You MUST call queue.task.close() on the return value when you're done
+    with it.
     """
     dns_bootstrap = network_info["DNS_BOOTSTRAP"]
 
     superpeer_ip_queue = asyncio.Queue()
 
     @asyncio.coroutine
-    def bootstrap_superpeer_addresses(dns_bootstrap):
-        for h in dns_bootstrap:
+    def bootstrap_superpeer_addresses(dns_bootstrap2):
+        for h in dns_bootstrap2:
             try:
                 r = yield from getaddrinfo(h, network_info["DEFAULT_PORT"])
                 results = set(t[-1][:2] for t in r)
@@ -65,10 +68,10 @@ def new_queue_of_timestamp_peeraddress_tuples(
         timestamp_peeraddress_tuple_queue = PriorityQueue()
 
     @asyncio.coroutine
-    def loop_connect_to_superpeer(superpeer_ip_queue):
+    def loop_connect_to_superpeer(superpeer_ip_queue2):
         while 1:
             try:
-                pair = yield from superpeer_ip_queue.get()
+                pair = yield from superpeer_ip_queue2.get()
                 if pair is None:
                     break
                 peer_name = "%s:%d" % pair
@@ -96,10 +99,7 @@ def new_queue_of_timestamp_peeraddress_tuples(
 
     timestamp_peeraddress_tuple_queue.tasks = [
         asyncio.Task(loop_connect_to_superpeer(superpeer_ip_queue))
-        for i in range(30)
-    ]
-
-    return timestamp_peeraddress_tuple_queue
+        for _ in range(30)]
 
     return timestamp_peeraddress_tuple_queue
 
@@ -107,9 +107,9 @@ def new_queue_of_timestamp_peeraddress_tuples(
 def main():
 
     @asyncio.coroutine
-    def show(timestamp_address_queue):
+    def show(timestamp_address_queue2):
         for r in range(100):
-            pair = yield from timestamp_address_queue.get()
+            pair = yield from timestamp_address_queue2.get()
             if pair is None:
                 break
             timestamp, addr = pair

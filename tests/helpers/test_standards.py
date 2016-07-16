@@ -28,6 +28,7 @@ class PeerTransport(asyncio.Transport):
 
     def get_extra_info(self, key):
 
+        # noinspection PyMethodParameters
         class ob:
 
             def getpeername(inner_self):

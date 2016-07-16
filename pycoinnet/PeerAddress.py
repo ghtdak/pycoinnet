@@ -30,12 +30,12 @@ class PeerAddress(object):
         f.write(struct.pack("!H", self.port))
 
     @classmethod
-    def parse(self, f):
+    def parse(cls, f):
         services, ip_bin, port = parse_struct("Q@h", f)
         if ip_bin.startswith(IP4_HEADER):
             ip_bin = ip_bin[len(IP4_HEADER):]
         ip_int = int.from_bytes(ip_bin, byteorder="big")
-        return self(services, ip_int, port)
+        return cls(services, ip_int, port)
 
     def __lt__(self, other):
         return self.ip_address.packed < other.ip_address.packed

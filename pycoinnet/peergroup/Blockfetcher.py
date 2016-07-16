@@ -21,8 +21,8 @@ class Blockfetcher:
     """
     Blockfetcher
 
-    This class is created once for each PeerGroup. It's used to accept a set of blocks
-    and download them in an overlapping way.
+    This class is created once for each PeerGroup. It's used to accept a set
+    of blocks and download them in an overlapping way.
 
     It accepts new peers via add_peer.
 

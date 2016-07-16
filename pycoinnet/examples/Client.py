@@ -39,8 +39,9 @@ def block_chain_locker_callback(block_chain, ops):
     locked_length = block_chain.locked_length()
     unlocked_length = total_length - locked_length
     if unlocked_length > LOCKED_MULTIPLE:
-        new_locked_length = total_length - (total_length % LOCKED_MULTIPLE
-                                           ) - LOCKED_MULTIPLE
+        new_locked_length = (total_length -
+                             (total_length % LOCKED_MULTIPLE) -
+                             LOCKED_MULTIPLE)
         block_chain.lock_to_index(new_locked_length)
 
 
@@ -77,15 +78,19 @@ class Client(object):
         host_port_q:
             a Queue that is being fed potential places to connect
         should_download_block_f:
-            a function that accepting(block_hash, block_index) and returning a boolean
-            indicating whether that block should be downloaded. Only used during fast-forward.
+            a function that accepting(block_hash, block_index) and returning
+            a boolean indicating whether that block should be downloaded.
+            Only used during fast-forward.
         block_chain_store:
             usually a BlockChainStore instance
         blockchain_change_callback:
-            a callback that expects (blockchain, list_of_ops) that is invoked whenever the
-            block chain is updated; blockchain is a BlockChain object and list_of_ops is a pair
-            of tuples of the form (op, block_hash, block_index) where op is one of "add" or "remove",
-            block_hash is a binary block hash, and block_index is an integer index number.
+            a callback that expects (blockchain, list_of_ops) that is invoked
+            whenever the block chain is updated; blockchain is a BlockChain
+            object and list_of_ops is a pair of tuples of the form (op,
+            block_hash, block_index) where op is one of "add" or "remove",
+            block_hash is a binary block hash, and block_index is an integer
+            index number.
+
         """
 
         block_chain = BlockChain(
@@ -159,7 +164,6 @@ class Client(object):
         # listener
         @asyncio.coroutine
         def run_listener():
-            abstract_server = None
             try:
                 abstract_server = yield from asyncio.get_event_loop(
                 ).create_server(protocol_factory=create_protocol_callback,

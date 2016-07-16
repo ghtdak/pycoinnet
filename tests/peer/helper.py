@@ -35,6 +35,7 @@ class PeerTransport(asyncio.Transport):
 
     def get_extra_info(self, key):
 
+        # noinspection PyMethodParameters
         class ob:
 
             def getpeername(inner_self):
@@ -78,7 +79,7 @@ def watch_messages(peer):
         while True:
             v = yield from next_message_f()
             msg_list.append(v)
-            if v[0] == None:
+            if v[0] is None:
                 break
 
     peer.msg_list = []
@@ -102,7 +103,11 @@ def create_peers(ip1="127.0.0.1", ip2="127.0.0.2"):
     return peer1, peer2
 
 
-def handshake_peers(peer1, peer2, peer_info_1={}, peer_info_2={}):
+def handshake_peers(peer1, peer2, peer_info_1=None, peer_info_2=None):
+    if peer_info_1 is None:
+        peer_info_1 = {}
+    if peer_info_2 is None:
+        peer_info_2 = {}
     msg1 = version_data_for_peer(peer1, **peer_info_1)
     msg2 = version_data_for_peer(peer2, **peer_info_2)
     asyncio.get_event_loop().run_until_complete(asyncio.wait([initial_handshake(
@@ -138,7 +143,7 @@ def create_peers_tcp():
                 abstract_server = yield from asyncio.get_event_loop(
                 ).create_server(protocol_factory=protocol_factory,
                                 port=port)
-            except Exception as OSError:
+            except Exception:
                 port += 1
         return abstract_server, port, future_peer
 

@@ -64,7 +64,8 @@ def getheaders_add_peer_f(blockchain_view, improved_blockchain_view_callback_f):
                     headers = [extra_block] + headers
 
                 # TODO: validate difficulties
-                # this will actually be difficult since it depends upon the prior 2016 block headers
+                # this will actually be difficult since it depends upon the
+                # prior 2016 block headers
 
                 time_elapsed = time.time() - start_time
                 rate_dict["total_seconds"] += time_elapsed
@@ -87,7 +88,8 @@ def getheaders_add_peer_f(blockchain_view, improved_blockchain_view_callback_f):
                                                (peer, lbi, rate_dict)))
                 else:
                     logging.debug(
-                        "improved_blockchain_view_callback_f with block number %d and %d headers",
+                        "improved_blockchain_view_callback_f with block "
+                        "number %d and %d headers",
                         block_number, len(reorg_headers))
                     blockchain_view.winnow()
                     yield from improved_blockchain_view_callback_f(

@@ -19,6 +19,7 @@ class BitcoinPeerProtocol(asyncio.Protocol):
     MAX_MESSAGE_SIZE = 2 * 1024 * 1024
 
     def __init__(self, magic_header, *args, **kwargs):
+        # todo: I don't think this call to superclass is correct
         super(BitcoinPeerProtocol, self).__init__(*args, **kwargs)
         self.magic_header = magic_header
         self.peername = ("(unconnected)", 0)

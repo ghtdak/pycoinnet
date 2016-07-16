@@ -33,5 +33,5 @@ class InvItem(object):
         stream_struct("L#", f, self.item_type, self.data)
 
     @classmethod
-    def parse(self, f):
-        return self(*parse_struct("L#", f))
+    def parse(cls, f):
+        return cls(*parse_struct("L#", f))

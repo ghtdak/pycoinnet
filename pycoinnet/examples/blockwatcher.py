@@ -105,8 +105,9 @@ def block_chain_locker_callback(block_chain, ops):
     locked_length = block_chain.locked_length()
     unlocked_length = total_length - locked_length
     if unlocked_length > LOCKED_MULTIPLE:
-        new_locked_length = total_length - (total_length % LOCKED_MULTIPLE
-                                           ) - LOCKED_MULTIPLE
+        new_locked_length = (total_length -
+                             (total_length % LOCKED_MULTIPLE) -
+                             LOCKED_MULTIPLE)
         block_chain.lock_to_index(new_locked_length)
 
 
@@ -142,13 +143,15 @@ def main():
         '-f',
         "--fast-forward",
         type=int,
-        help="block index to fast-forward to (ie. don't download full blocks prior to this one)",
+        help="block index to fast-forward to (ie. don't download full blocks "
+             "prior to this one)",
         default=0)
     parser.add_argument(
         '-d',
         "--depth",
         type=int,
-        help="Minimum depth blocks must be buried before being dropped in blockdir",
+        help="Minimum depth blocks must be buried before being dropped in "
+             "blockdir",
         default=0)
     parser.add_argument('-l',
                         "--log-file",

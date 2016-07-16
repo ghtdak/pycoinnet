@@ -8,10 +8,12 @@ GENESIS_TUPLE = (-1, HASH_INITIAL_BLOCK, 0)
 
 class BlockChainView:
 
-    def __init__(self, node_tuples=[]):
+    def __init__(self, node_tuples=None):
         """
         A node_tuple is (index, hash, total_work).
         """
+        if node_tuples is None:
+            node_tuples = []
         self._set_tuples(node_tuples)
 
     def _set_tuples(self, node_tuples):
@@ -29,7 +31,7 @@ class BlockChainView:
             [[t[0], b2h_rev(t[1]), t[2]] for t in self.node_tuples])
 
     @classmethod
-    def from_json(class_, the_json):
+    def from_json(cls, the_json):
 
         def from_tuple(t):
             return [t[0], h2b_rev(t[1]), t[2]]
@@ -62,10 +64,10 @@ class BlockChainView:
                 lo = idx + 1
         return self.node_tuples[hi - 1]
 
-    def tuple_for_hash(self, hash):
-        if hash == HASH_INITIAL_BLOCK:
+    def tuple_for_hash(self, _hash):
+        if _hash == HASH_INITIAL_BLOCK:
             return GENESIS_TUPLE
-        idx = self.hash_to_index.get(hash)
+        idx = self.hash_to_index.get(_hash)
         if idx is not None:
             return self.tuple_for_index(idx)
         return None
@@ -85,7 +87,8 @@ class BlockChainView:
 
     def block_locator_hashes(self):
         """
-        Generate locator_hashes value suitable for passing to getheaders message.
+        Generate locator_hashes value suitable for passing to getheaders
+        message.
         """
         if len(self.node_tuples) == 0:
             return [HASH_INITIAL_BLOCK]
@@ -124,14 +127,16 @@ class BlockChainView:
 
     def do_headers_improve_path(self, headers):
         """
-        Raises ValueError if headers path don't extend from anywhere in this view.
+        Raises ValueError if headers path don't extend from anywhere in this
+        view.
 
         Returns False if the headers don't improve the path.
 
-        If the headers DO improve the path, return the value of the block index of
-        the first header.
+        If the headers DO improve the path, return the value of the block
+        index of the first header.
 
-        So you need to rewind to "new_start_idx" before applying the new blocks.
+        So you need to rewind to "new_start_idx" before applying the new
+        blocks.
         """
         tuples = []
         if len(self.node_tuples) == 0:
@@ -148,9 +153,10 @@ class BlockChainView:
         for idx, h in enumerate(headers):
             if h.previous_block_hash != expected_prior_hash:
                 raise ValueError(
-                    "headers are not properly linked: no known block with hash %s"
-                    % b2h_rev(h.previous_block_hash))
-            total_work += 1  # TODO: make this difficulty/work instead of path size
+                    "headers are not properly linked: no known block with "
+                    "hash %s " % b2h_rev(h.previous_block_hash))
+            # TODO: make this difficulty/work instead of path size
+            total_work += 1
             expected_prior_hash = h.hash()
             tuples.append(
                 (idx + new_start_idx, expected_prior_hash, total_work))

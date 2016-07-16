@@ -88,7 +88,9 @@ def block_getter(inv_q, inv_collector, block_handler, block_chain, block_store):
         asyncio.Task(fetch_block(inv_item))
 
 
-def items_for_client(initial_blocks=[]):
+def items_for_client(initial_blocks=None):
+    if initial_blocks is None:
+        initial_blocks = []
     block_store = {}
     block_chain = BlockChain()
     blockfetcher = Blockfetcher()

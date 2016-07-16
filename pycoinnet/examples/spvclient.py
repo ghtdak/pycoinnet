@@ -61,7 +61,8 @@ class SPVClient(object):
         bloom_filter:
             the filter sent to remotes
         block_index_queue:
-            a Queue which is fed with (block, index) items which need to be processed
+            a Queue which is fed with (block, index) items which need to be
+            processed
         host_port_q:
             a Queue that is being fed potential places to connect
         """
@@ -110,8 +111,9 @@ class SPVClient(object):
             version_data = yield from initial_handshake(peer,
                                                         version_parameters)
             if self.bloom_filter:
-                filter_bytes, hash_function_count, tweak = self.bloom_filter.filter_load_params(
-                )
+                (filter_bytes,
+                 hash_function_count,
+                 tweak) = self.bloom_filter.filter_load_params()
                 # TODO: figure out flags
                 flags = 0
                 peer.send_msg("filterload",

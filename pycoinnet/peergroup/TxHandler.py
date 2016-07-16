@@ -31,8 +31,8 @@ class TxHandler:
 
     def add_peer(self, peer):
         """
-        Call this method when a peer comes online and you want to keep its mempool
-        in sync with this mempool.
+        Call this method when a peer comes online and you want to keep its
+        mempool in sync with this mempool.
         """
 
         @asyncio.coroutine
@@ -66,7 +66,8 @@ class TxHandler:
                     len(inv_items))
                 if len(inv_items) > 0:
                     peer.send_msg("inv", items=inv_items)
-                # then we exit. We don't need to handle this message more than once.
+                # then we exit. We don't need to handle this message more
+                # than once.
             except EOFError:
                 pass
 

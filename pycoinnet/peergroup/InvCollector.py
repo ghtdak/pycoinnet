@@ -130,13 +130,13 @@ class InvCollector:
                 timer_future = asyncio.Task(_wait_for_timeout_and_peer(
                     q, initial_delay=peer_timeout))
 
-            futures = pending_fetchers.union(set([timer_future]))
+            futures = pending_fetchers.union({timer_future})
 
             if most_recent_fetcher:
                 futures.add(most_recent_fetcher)
 
-            done, pending_fetchers = \
-                yield from asyncio.wait(list(futures), return_when=asyncio.FIRST_COMPLETED)
+            done, pending_fetchers = yield from asyncio.wait(
+                list(futures), return_when=asyncio.FIRST_COMPLETED)
 
             # is it time to try a new fetcher?
             if timer_future in done:
@@ -146,7 +146,8 @@ class InvCollector:
                               inv_item)
                 timer_future = asyncio.Task(_wait_for_timeout_and_peer(
                     q, initial_delay=peer_timeout))
-                # we have a new peer available as the result of get_fetcher_future
+                # we have a new peer available as the result of
+                # get_fetcher_future
                 continue
 
             # is the most recent done?

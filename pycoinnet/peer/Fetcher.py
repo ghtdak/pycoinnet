@@ -4,7 +4,8 @@ import weakref
 
 from pycoin.serialize import b2h_rev
 
-from pycoinnet.InvItem import InvItem, ITEM_TYPE_TX, ITEM_TYPE_BLOCK, ITEM_TYPE_MERKLEBLOCK
+from pycoinnet.InvItem import (InvItem, ITEM_TYPE_TX, ITEM_TYPE_BLOCK,
+                               ITEM_TYPE_MERKLEBLOCK)
 
 
 class Fetcher:
@@ -20,13 +21,14 @@ class Fetcher:
 
         getdata_loop_future = asyncio.Task(self._getdata_loop())
         next_message = peer.new_get_next_message_f(
-            filter_f=lambda name, data: name in ["tx", "block", "merkleblock", "notfound"])
+            filter_f=lambda name, data: name in ["tx", "block",
+                                                 "merkleblock", "notfound"])
         peer.add_task(self._fetch_loop(next_message, getdata_loop_future))
 
     def fetch(self, inv_item, timeout=None):
         """
-        Return the fetched object or None if the remote says it doesn't have it, or
-        times out by exceeding `timeout` seconds.
+        Return the fetched object or None if the remote says it doesn't have
+        it, or times out by exceeding `timeout` seconds.
         """
         future = self.futures.get(inv_item)
         if not future:
@@ -75,7 +77,8 @@ class Fetcher:
                             name, data = yield from next_message()
                             if name != "tx":
                                 logging.error(
-                                    "insufficient tx messages after merkleblock message: missing %s",
+                                    "insufficient tx messages after "
+                                    "merkleblock message: missing %s",
                                     b2h_rev(h))
                                 del self.futures[inv_item]
                                 future.set_result(None)
@@ -83,7 +86,8 @@ class Fetcher:
                             tx = data["tx"]
                             if tx.hash() != h:
                                 logging.error(
-                                    "missing tx message after merkleblock message: missing %s",
+                                    "missing tx message after merkleblock "
+                                    "message: missing %s",
                                     b2h_rev(h))
                                 del self.futures[inv_item]
                                 future.set_result(None)
@@ -98,7 +102,6 @@ class Fetcher:
                             logging.info("got %s unsolicited", item.id())
                 if name == "notfound":
                     for inv_item in data["items"]:
-                        the_hash = inv_item.data
                         future = self.futures.get(inv_item)
                         if future:
                             del self.futures[inv_item]

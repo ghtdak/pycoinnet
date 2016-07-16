@@ -46,7 +46,7 @@ MESSAGE_STRUCTURES = {
     'filterload': "filter:[1] hash_function_count:L tweak:L flags:b",
     'filteradd': "data:[1]",
     'filterclear': "",
-    'merkleblock': ("header:z total_transactions:L hashes:[#] flags:[1]"),
+    'merkleblock': "header:z total_transactions:L hashes:[#] flags:[1]",
     'alert': "payload:S signature:S",
 }
 
@@ -206,16 +206,16 @@ def pack_from_data(message_name, **kwargs):
     f = io.BytesIO()
     the_fields = the_struct.split(" ")
     pairs = [t.split(":") for t in the_fields]
-    for name, type in pairs:
-        if type[0] == '[':
+    for name, _type in pairs:
+        if _type[0] == '[':
             bitcoin_streamer.BITCOIN_STREAMER.stream_struct("I", f,
                                                             len(kwargs[name]))
             for v in kwargs[name]:
                 if not isinstance(v, (tuple, list)):
                     v = [v]
-                bitcoin_streamer.BITCOIN_STREAMER.stream_struct(type[1:-1], f, *
+                bitcoin_streamer.BITCOIN_STREAMER.stream_struct(_type[1:-1], f, *
                                                                 v)
         else:
-            bitcoin_streamer.BITCOIN_STREAMER.stream_struct(type, f,
+            bitcoin_streamer.BITCOIN_STREAMER.stream_struct(_type, f,
                                                             kwargs[name])
     return f.getvalue()
